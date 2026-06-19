@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayrton Senna — McLaren Honda F1 Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A0A0A;color:#F5F0E8;font-family:'Inter',sans-serif;overflow-x:hidden}
+/* HERO */
+.hero{position:relative;padding:56px 40px 40px;border-bottom:1px solid #1a1a1a;overflow:hidden}
+.hero-lines{position:absolute;inset:0;pointer-events:none}
+.eyebrow{font-size:11px;letter-spacing:.22em;color:#FF6B00;text-transform:uppercase;margin-bottom:14px}
+.hero-name{font-family:'Rajdhani',sans-serif;font-size:64px;font-weight:700;line-height:1;color:#F5F0E8}
+.hero-name span{color:#FF6B00}
+.hero-sub{font-size:13px;color:#666;margin-top:8px;letter-spacing:.05em}
+.hero-stats{display:flex;gap:40px;margin-top:32px;flex-wrap:wrap}
+.hstat{border-left:2px solid #FF6B00;padding-left:16px}
+.hstat-val{font-family:'Rajdhani',sans-serif;font-size:40px;font-weight:700;color:#FF6B00;line-height:1}
+.hstat-lbl{font-size:10px;color:#555;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+/* NAV */
+.nav{display:flex;gap:2px;padding:0 40px;border-bottom:1px solid #1a1a1a;background:#0A0A0A;position:sticky;top:0;z-index:10}
+.nav-btn{background:none;border:none;color:#555;padding:16px 18px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'Inter',sans-serif}
+.nav-btn.active{color:#FF6B00;border-bottom-color:#FF6B00}
+.nav-btn:hover{color:#F5F0E8}
+/* SECTIONS */
+.section{padding:40px;display:none}
+.section.active{display:block}
+.sec-title{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:600;color:#F5F0E8;margin-bottom:28px;display:flex;align-items:center;gap:12px}
+.sec-title::after{content:'';flex:1;height:1px;background:#1a1a1a}
+/* CHAMP CARDS */
+.champ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:36px}
+.champ-card{background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:22px;position:relative;overflow:hidden;transition:border-color .2s}
+.champ-card:hover{border-color:#FF6B00}
+.champ-card.won{border-color:#FF6B00}
+.champ-card.won::before{content:'CHAMPION';position:absolute;top:12px;right:12px;font-size:9px;letter-spacing:.15em;color:#FF6B00;font-weight:700}
+.champ-card.lost::before{content:'RUNNER-UP';position:absolute;top:12px;right:12px;font-size:9px;letter-spacing:.15em;color:#555;font-weight:700}
+.c-year{font-family:'Rajdhani',sans-serif;font-size:44px;font-weight:700;color:#F5F0E8;line-height:1}
+.c-car{font-size:11px;color:#555;margin-top:3px;letter-spacing:.04em}
+.c-pts{font-family:'Rajdhani',sans-serif;font-size:30px;font-weight:700;color:#FF6B00;margin-top:14px}
+.c-pts-lbl{font-size:10px;color:#444;letter-spacing:.1em;text-transform:uppercase}
+.c-mini{display:flex;gap:16px;margin-top:14px}
+.cm-val{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:#CC0000}
+.cm-lbl{font-size:9px;color:#444;letter-spacing:.1em;text-transform:uppercase}
+/* TABLE */
+.race-table{width:100%;border-collapse:collapse}
+.race-table th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#444;padding:10px 14px;text-align:left;border-bottom:1px solid #1a1a1a}
+.race-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid #0f0f0f;color:#aaa}
+.race-table tr:hover td{background:#0c0c0c;color:#F5F0E8}
+.badge{display:inline-block;width:26px;height:26px;border-radius:4px;text-align:center;line-height:26px;font-size:11px;font-weight:700}
+.b1{background:#FF6B00;color:#000}.b2{background:#C0C0C0;color:#000}.b3{background:#CC0000;color:#fff}
+.bo{background:#1e1e1e;color:#555}.bd{background:#1a0000;color:#CC0000}
+.yr-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.yr-btn{background:#111;border:1px solid #1e1e1e;color:#666;padding:7px 16px;border-radius:4px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.yr-btn.active{background:#FF6B00;border-color:#FF6B00;color:#000;font-weight:700}
+.yr-btn:hover{border-color:#FF6B00;color:#FF6B00}
+/* CHART */
+.chart-wrap{position:relative;width:100%;height:280px;margin-bottom:32px}
+/* RIVALRY */
+.rv-grid{display:grid;grid-template-columns:1fr 60px 1fr;gap:24px;align-items:start}
+.rv-side{background:#111;border-radius:8px;padding:22px}
+.rv-side.s{border-top:3px solid #FF6B00}
+.rv-side.p{border-top:3px solid #4a8fc4}
+.rv-name{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;margin-bottom:4px}
+.rv-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a1a1a;font-size:13px}
+.rv-row:last-child{border-bottom:none}
+.rv-lbl{color:#555}
+.rv-val{font-weight:600;color:#F5F0E8}
+.rv-vs{display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:#222;padding-top:56px}
+.clash-box{margin-top:24px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;padding:20px}
+.clash-tag{font-size:10px;color:#CC0000;letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px}
+.clash-text{font-size:13px;color:#777;line-height:1.9}
+.clash-text b{color:#F5F0E8;font-weight:500}
+/* TIMELINE */
+.tl-item{display:flex;gap:22px;padding:18px 0;border-bottom:1px solid #0f0f0f}
+.tl-yr{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:#FF6B00;min-width:64px}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:#FF6B00;margin-top:7px;flex-shrink:0;box-shadow:0 0 8px #FF6B00}
+.tl-h{font-size:14px;color:#F5F0E8;margin-bottom:5px;font-weight:500}
+.tl-p{font-size:13px;color:#666;line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <svg class="hero-lines" viewBox="0 0 1200 220" preserveAspectRatio="none">
+    <line x1="0" y1="60" x2="1200" y2="60" stroke="#FF6B00" stroke-width="0.4" opacity="0.12"/>
+    <line x1="0" y1="110" x2="1200" y2="110" stroke="#FF6B00" stroke-width="0.4" opacity="0.06"/>
+    <line x1="0" y1="160" x2="1200" y2="160" stroke="#CC0000" stroke-width="0.4" opacity="0.08"/>
+    <polygon points="1050,0 1200,0 1200,220 980,220" fill="#FF6B00" opacity="0.025"/>
+    <polygon points="1130,0 1200,0 1200,220 1110,220" fill="#FF6B00" opacity="0.04"/>
+  </svg>
+  <div class="eyebrow">McLaren Honda &middot; 1988&ndash;1992</div>
+  <div class="hero-name">AYRTON <span>SENNA</span></div>
+  <div class="hero-sub">Formula 1 &mdash; Championship &amp; Performance Tracker</div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-val">3</div><div class="hstat-lbl">World Championships</div></div>
+    <div class="hstat"><div class="hstat-val">35</div><div class="hstat-lbl">Race Wins (McLaren)</div></div>
+    <div class="hstat"><div class="hstat-val">46</div><div class="hstat-lbl">Pole Positions</div></div>
+    <div class="hstat"><div class="hstat-val">80</div><div class="hstat-lbl">Career Podiums</div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showTab('championships',this)">Championships</button>
+  <button class="nav-btn" onclick="showTab('races',this)">Race Results</button>
+  <button class="nav-btn" onclick="showTab('performance',this)">Performance</button>
+  <button class="nav-btn" onclick="showTab('rivalry',this)">Senna vs Prost</button>
+  <button class="nav-btn" onclick="showTab('timeline',this)">Timeline</button>
+</nav>
+
+<!-- CHAMPIONSHIPS TAB -->
+<div id="tab-championships" class="section active">
+  <div class="sec-title">World Championship Seasons</div>
+  <div class="champ-grid">
+    <div class="champ-card won">
+      <div class="c-year">1988</div><div class="c-car">McLaren MP4/4 &middot; Honda RA168E V6 Turbo</div>
+      <div class="c-pts">90 <span style="font-size:14px;color:#444">pts</span></div><div class="c-pts-lbl">Championship Points</div>
+      <div class="c-mini"><div><div class="cm-val">8</div><div class="cm-lbl">Wins</div></div><div><div class="cm-val">13</div><div class="cm-lbl">Poles</div></div><div><div class="cm-val">13</div><div class="cm-lbl">Podiums</div></div></div>
+    </div>
+    <div class="champ-card lost">
+      <div class="c-year">1989</div><div class="c-car">McLaren MP4/5 &middot; Honda RA109E V10</div>
+      <div class="c-pts">60 <span style="font-size:14px;color:#444">pts</span></div><div class="c-pts-lbl">Championship Points</div>
+      <div class="c-mini"><div><div class="cm-val">6</div><div class="cm-lbl">Wins</div></div><div><div class="cm-val">13</div><div class="cm-lbl">Poles</div></div><div><div class="cm-val">13</div><div class="cm-lbl">Podiums</div></div></div>
+    </div>
+    <div class="champ-card won">
+      <div class="c-year">1990</div><div class="c-car">McLaren MP4/5B &middot; Honda RA100E V10</div>
+      <div class="c-pts">78 <span style="font-size:14px;color:#444">pts</span></div><div class="c-pts-lbl">Championship Points</div>
+      <div class="c-mini"><div><div class="cm-val">6</div><div class="cm-lbl">Wins</div></div><div><div class="cm-val">10</div><div class="cm-lbl">Poles</div></div><div><div class="cm-val">11</div><div class="cm-lbl">Podiums</div></div></div>
+    </div>
+    <div class="champ-card won">
+      <div class="c-year">1991</div><div class="c-car">McLaren MP4/6 &middot; Honda RA121E V12</div>
+      <div class="c-pts">96 <span style="font-size:14px;color:#444">pts</span></div><div class="c-pts-lbl">Championship Points</div>
+      <div class="c-mini"><div><div class="cm-val">7</div><div class="cm-lbl">Wins</div></div><div><div class="cm-val">8</div><div class="cm-lbl">Poles</div></div><div><div class="cm-val">11</div><div class="cm-lbl">Podiums</div></div></div>
+    </div>
+    <div class="champ-card" style="border-color:#222">
+      <div class="c-year">1992</div><div class="c-car">McLaren MP4/7A &middot; Honda RA122E/B V12</div>
+      <div class="c-pts">50 <span style="font-size:14px;color:#444">pts</span></div><div class="c-pts-lbl">Championship Points</div>
+      <div class="c-mini"><div><div class="cm-val">3</div><div class="cm-lbl">Wins</div></div><div><div class="cm-val">1</div><div class="cm-lbl">Poles</div></div><div><div class="cm-val">8</div><div class="cm-lbl">Podiums</div></div></div>
+    </div>
+  </div>
+  <div class="chart-wrap"><canvas id="champChart" role="img" aria-label="Championship points per season">Points: 1988=90, 1989=60, 1990=78, 1991=96, 1992=50</canvas></div>
+</div>
+
+<!-- RACES TAB -->
+<div id="tab-races" class="section">
+  <div class="sec-title">Race Results</div>
+  <div class="yr-filter" id="yrFilter"></div>
+  <table class="race-table">
+    <thead><tr><th>Rnd</th><th>Grand Prix</th><th>Car</th><th>Grid</th><th>Result</th><th>Pts</th></tr></thead>
+    <tbody id="raceBody"></tbody>
+  </table>
+</div>
+
+<!-- PERFORMANCE TAB -->
+<div id="tab-performance" class="section">
+  <div class="sec-title">Season Performance Metrics</div>
+  <div class="chart-wrap" style="height:250px"><canvas id="winsChart" role="img" aria-label="Wins and poles per season">Wins: 8,6,6,7,3 — Poles: 13,13,10,8,1</canvas></div>
+  <div class="chart-wrap" style="height:250px;margin-top:16px"><canvas id="podChart" role="img" aria-label="Podium finishes per season">Podiums: 13,13,11,11,8</canvas></div>
+</div>
+
+<!-- RIVALRY TAB -->
+<div id="tab-rivalry" class="section">
+  <div class="sec-title">Senna vs Prost &mdash; The Greatest Rivalry</div>
+  <div class="rv-grid">
+    <div class="rv-side s">
+      <div class="rv-name" style="color:#FF6B00">Ayrton Senna</div>
+      <div style="font-size:11px;color:#555;margin-bottom:16px">McLaren Honda / Brazil</div>
+      <div class="rv-row"><span class="rv-lbl">Titles</span><span class="rv-val" style="color:#FF6B00">3</span></div>
+      <div class="rv-row"><span class="rv-lbl">Career wins</span><span class="rv-val" style="color:#FF6B00">41</span></div>
+      <div class="rv-row"><span class="rv-lbl">Pole positions</span><span class="rv-val" style="color:#FF6B00">65</span></div>
+      <div class="rv-row"><span class="rv-lbl">1988 wins</span><span class="rv-val">8</span></div>
+      <div class="rv-row"><span class="rv-lbl">1989 wins</span><span class="rv-val">6</span></div>
+      <div class="rv-row"><span class="rv-lbl">Win rate</span><span class="rv-val">25%</span></div>
+    </div>
+    <div class="rv-vs">VS</div>
+    <div class="rv-side p">
+      <div class="rv-name" style="color:#4a8fc4">Alain Prost</div>
+      <div style="font-size:11px;color:#555;margin-bottom:16px">McLaren Honda / Ferrari / France</div>
+      <div class="rv-row"><span class="rv-lbl">Titles</span><span class="rv-val" style="color:#4a8fc4">4</span></div>
+      <div class="rv-row"><span class="rv-lbl">Career wins</span><span class="rv-val">51</span></div>
+      <div class="rv-row"><span class="rv-lbl">Pole positions</span><span class="rv-val">33</span></div>
+      <div class="rv-row"><span class="rv-lbl">1988 wins</span><span class="rv-val">7</span></div>
+      <div class="rv-row"><span class="rv-lbl">1989 wins</span><span class="rv-val" style="color:#4a8fc4">4 + Title</span></div>
+      <div class="rv-row"><span class="rv-lbl">Points efficiency</span><span class="rv-val" style="color:#4a8fc4">Highest</span></div>
+    </div>
+  </div>
+  <div class="clash-box">
+    <div class="clash-tag">Key Clashes</div>
+    <div class="clash-text">
+      <b>1989 Suzuka —</b> Prost turns in on Senna at the chicane. Senna pushes through, wins, then is disqualified. Prost clinches the championship.<br>
+      <b>1990 Suzuka —</b> Senna takes out Prost at Turn 1 on the opening lap. Controversial, but Senna secures his second title.<br>
+      <b>1988 Season —</b> Both teammates at McLaren. The team wins 15 of 16 races — Senna 8, Prost 7. An era of total dominance.
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE TAB -->
+<div id="tab-timeline" class="section">
+  <div class="sec-title">Career Timeline at McLaren Honda</div>
+  <div id="tlContainer"></div>
+</div>
+
+<script>
+const races={
+  1988:[
+    {r:1,gp:'Brazil',car:'MP4/4',grid:1,result:'DNF',pts:0},{r:2,gp:'San Marino',car:'MP4/4',grid:1,result:'1st',pts:9},
+    {r:3,gp:'Monaco',car:'MP4/4',grid:1,result:'DNF',pts:0},{r:4,gp:'Mexico',car:'MP4/4',grid:1,result:'2nd',pts:6},
+    {r:5,gp:'Canada',car:'MP4/4',grid:1,result:'1st',pts:9},{r:6,gp:'Detroit',car:'MP4/4',grid:1,result:'1st',pts:9},
+    {r:7,gp:'France',car:'MP4/4',grid:2,result:'2nd',pts:6},{r:8,gp:'Britain',car:'MP4/4',grid:1,result:'1st',pts:9},
+    {r:9,gp:'Germany',car:'MP4/4',grid:2,result:'1st',pts:9},{r:10,gp:'Hungary',car:'MP4/4',grid:1,result:'1st',pts:9},
+    {r:11,gp:'Belgium',car:'MP4/4',grid:1,result:'1st',pts:9},{r:12,gp:'Italy',car:'MP4/4',grid:1,result:'DNF',pts:0},
+    {r:13,gp:'Portugal',car:'MP4/4',grid:1,result:'6th',pts:1},{r:14,gp:'Spain',car:'MP4/4',grid:1,result:'4th',pts:3},
+    {r:15,gp:'Japan',car:'MP4/4',grid:1,result:'1st',pts:9},{r:16,gp:'Australia',car:'MP4/4',grid:1,result:'2nd',pts:6}
+  ],
+  1989:[
+    {r:1,gp:'Brazil',car:'MP4/5',grid:1,result:'11th',pts:0},{r:2,gp:'San Marino',car:'MP4/5',grid:1,result:'1st',pts:9},
+    {r:3,gp:'Monaco',car:'MP4/5',grid:1,result:'1st',pts:9},{r:4,gp:'Mexico',car:'MP4/5',grid:1,result:'DNF',pts:0},
+    {r:5,gp:'USA',car:'MP4/5',grid:1,result:'1st',pts:9},{r:6,gp:'Canada',car:'MP4/5',grid:1,result:'DNF',pts:0},
+    {r:7,gp:'France',car:'MP4/5',grid:3,result:'2nd',pts:6},{r:8,gp:'Britain',car:'MP4/5',grid:1,result:'DNF',pts:0},
+    {r:9,gp:'Germany',car:'MP4/5',grid:1,result:'1st',pts:9},{r:10,gp:'Hungary',car:'MP4/5',grid:1,result:'2nd',pts:6},
+    {r:11,gp:'Belgium',car:'MP4/5',grid:1,result:'1st',pts:9},{r:12,gp:'Italy',car:'MP4/5',grid:1,result:'DNF',pts:0},
+    {r:13,gp:'Portugal',car:'MP4/5',grid:1,result:'DNF',pts:0},{r:14,gp:'Spain',car:'MP4/5',grid:1,result:'3rd',pts:4},
+    {r:15,gp:'Japan',car:'MP4/5',grid:2,result:'DSQ',pts:0},{r:16,gp:'Australia',car:'MP4/5',grid:1,result:'1st',pts:9}
+  ],
+  1990:[
+    {r:1,gp:'USA',car:'MP4/5B',grid:1,result:'DNF',pts:0},{r:2,gp:'Brazil',car:'MP4/5B',grid:1,result:'1st',pts:9},
+    {r:3,gp:'San Marino',car:'MP4/5B',grid:1,result:'DNF',pts:0},{r:4,gp:'Monaco',car:'MP4/5B',grid:1,result:'1st',pts:9},
+    {r:5,gp:'Canada',car:'MP4/5B',grid:1,result:'DNF',pts:0},{r:6,gp:'Mexico',car:'MP4/5B',grid:1,result:'DNF',pts:0},
+    {r:7,gp:'France',car:'MP4/5B',grid:1,result:'3rd',pts:4},{r:8,gp:'Britain',car:'MP4/5B',grid:1,result:'3rd',pts:4},
+    {r:9,gp:'Germany',car:'MP4/5B',grid:1,result:'1st',pts:9},{r:10,gp:'Hungary',car:'MP4/5B',grid:1,result:'2nd',pts:6},
+    {r:11,gp:'Belgium',car:'MP4/5B',grid:1,result:'1st',pts:9},{r:12,gp:'Italy',car:'MP4/5B',grid:1,result:'1st',pts:9},
+    {r:13,gp:'Portugal',car:'MP4/5B',grid:1,result:'2nd',pts:6},{r:14,gp:'Spain',car:'MP4/5B',grid:1,result:'DNF',pts:0},
+    {r:15,gp:'Japan',car:'MP4/5B',grid:1,result:'1st',pts:9},{r:16,gp:'Australia',car:'MP4/5B',grid:1,result:'DNF',pts:0}
+  ],
+  1991:[
+    {r:1,gp:'USA',car:'MP4/6',grid:1,result:'1st',pts:10},{r:2,gp:'Brazil',car:'MP4/6',grid:1,result:'1st',pts:10},
+    {r:3,gp:'San Marino',car:'MP4/6',grid:1,result:'1st',pts:10},{r:4,gp:'Monaco',car:'MP4/6',grid:1,result:'1st',pts:10},
+    {r:5,gp:'Canada',car:'MP4/6',grid:1,result:'DNF',pts:0},{r:6,gp:'Mexico',car:'MP4/6',grid:1,result:'3rd',pts:4},
+    {r:7,gp:'France',car:'MP4/6',grid:1,result:'3rd',pts:4},{r:8,gp:'Britain',car:'MP4/6',grid:1,result:'4th',pts:3},
+    {r:9,gp:'Germany',car:'MP4/6',grid:2,result:'7th',pts:0},{r:10,gp:'Hungary',car:'MP4/6',grid:1,result:'DNF',pts:0},
+    {r:11,gp:'Belgium',car:'MP4/6',grid:3,result:'1st',pts:10},{r:12,gp:'Italy',car:'MP4/6',grid:1,result:'2nd',pts:6},
+    {r:13,gp:'Portugal',car:'MP4/6',grid:2,result:'2nd',pts:6},{r:14,gp:'Spain',car:'MP4/6',grid:3,result:'5th',pts:2},
+    {r:15,gp:'Japan',car:'MP4/6',grid:1,result:'2nd',pts:6},{r:16,gp:'Australia',car:'MP4/6',grid:1,result:'1st',pts:10}
+  ],
+  1992:[
+    {r:1,gp:'South Africa',car:'MP4/7A',grid:3,result:'3rd',pts:4},{r:2,gp:'Mexico',car:'MP4/7A',grid:1,result:'DNF',pts:0},
+    {r:3,gp:'Brazil',car:'MP4/7A',grid:2,result:'1st',pts:10},{r:4,gp:'Spain',car:'MP4/7A',grid:4,result:'9th',pts:0},
+    {r:5,gp:'San Marino',car:'MP4/7A',grid:3,result:'3rd',pts:4},{r:6,gp:'Monaco',car:'MP4/7A',grid:2,result:'1st',pts:10},
+    {r:7,gp:'Canada',car:'MP4/7A',grid:3,result:'DNF',pts:0},{r:8,gp:'France',car:'MP4/7A',grid:3,result:'2nd',pts:6},
+    {r:9,gp:'Britain',car:'MP4/7A',grid:3,result:'4th',pts:3},{r:10,gp:'Germany',car:'MP4/7A',grid:3,result:'3rd',pts:4},
+    {r:11,gp:'Hungary',car:'MP4/7A',grid:2,result:'1st',pts:10},{r:12,gp:'Belgium',car:'MP4/7A',grid:3,result:'DNF',pts:0},
+    {r:13,gp:'Italy',car:'MP4/7A',grid:3,result:'2nd',pts:6},{r:14,gp:'Portugal',car:'MP4/7A',grid:3,result:'DNF',pts:0},
+    {r:15,gp:'Japan',car:'MP4/7A',grid:3,result:'DNF',pts:0},{r:16,gp:'Australia',car:'MP4/7A',grid:3,result:'4th',pts:3}
+  ]
+};
+
+const timeline=[
+  {yr:1988,h:'Dominant Season — MP4/4',p:'McLaren win 15 of 16 races. Senna wins 8 grands prix and clinches his first World Championship at Suzuka. The Honda V6 turbo produces ~685 bhp — the most powerful engine of the era.'},
+  {yr:1989,h:'Heartbreak at Suzuka',p:'Senna loses the championship to Prost after a controversial collision at the Suzuka chicane. Wins 6 races. The switch to the Honda V10 era begins with the MP4/5.'},
+  {yr:1990,h:'Champion Again — MP4/5B',p:'Second championship in three seasons. Wins 6 races. Famous battle with Nigel Mansell at Silverstone\'s 130R. Controversial first-corner collision with Prost at Suzuka seals the title.'},
+  {yr:1991,h:'Third Championship — MP4/6',p:'Wins 7 races with the Honda V12. Opens the season with four consecutive victories. Takes the title despite the Williams FW14 emerging as the fastest car in the second half.'},
+  {yr:1992,h:'Fighting the Williams — MP4/7A',p:'McLaren falls behind Williams-Renault\'s active suspension FW14B. Senna wins 3 races through sheer brilliance. Final race in Australia is Senna\'s last with McLaren Honda as the partnership ends.'}
+];
+
+function showTab(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function badge(r){
+  if(r==='1st') return '<span class="badge b1">1</span>';
+  if(r==='2nd') return '<span class="badge b2">2</span>';
+  if(r==='3rd') return '<span class="badge b3">3</span>';
+  if(r==='DNF'||r==='DSQ') return '<span class="badge bd">'+r+'</span>';
+  return '<span class="badge bo">'+r+'</span>';
+}
+
+function renderRaces(yr){
+  document.getElementById('raceBody').innerHTML=races[yr].map(r=>`<tr>
+    <td style="color:#444">${r.r}</td>
+    <td style="color:#F5F0E8;font-weight:500">${r.gp}</td>
+    <td style="color:#555;font-size:12px">${r.car}</td>
+    <td style="color:#666">${r.grid}</td>
+    <td>${badge(r.result)}</td>
+    <td style="color:${r.pts>0?'#FF6B00':'#333'};font-weight:600">${r.pts}</td>
+  </tr>`).join('');
+}
+
+function buildFilter(){
+  const d=document.getElementById('yrFilter');
+  [1988,1989,1990,1991,1992].forEach(y=>{
+    const b=document.createElement('button');
+    b.className='yr-btn'+(y===1988?' active':'');
+    const stars={1988:'★ ',1990:'★ ',1991:'★ '};
+    b.textContent=(stars[y]||'')+y;
+    b.onclick=()=>{d.querySelectorAll('.yr-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderRaces(y);};
+    d.appendChild(b);
+  });
+}
+
+function buildTimeline(){
+  document.getElementById('tlContainer').innerHTML=timeline.map(e=>`
+    <div class="tl-item">
+      <div class="tl-yr">${e.yr}</div>
+      <div class="tl-dot"></div>
+      <div><div class="tl-h">${e.h}</div><div class="tl-p">${e.p}</div></div>
+    </div>`).join('');
+}
+
+buildFilter(); renderRaces(1988); buildTimeline();
+
+// Charts
+const seasons=['1988','1989','1990','1991','1992'];
+new Chart(document.getElementById('champChart'),{
+  type:'bar',
+  data:{labels:seasons,datasets:[{label:'Points',data:[90,60,78,96,50],backgroundColor:['#FF6B00','#2a2a2a','#FF6B00','#FF6B00','#2a2a2a'],borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw+' pts'}}},
+    scales:{x:{ticks:{color:'#555',font:{size:12}},grid:{color:'#111'}},y:{ticks:{color:'#555',font:{size:11}},grid:{color:'#111'},min:0,max:110}}}
+});
+
+new Chart(document.getElementById('winsChart'),{
+  type:'bar',
+  data:{labels:seasons,datasets:[
+    {label:'Race Wins',data:[8,6,6,7,3],backgroundColor:'#FF6B00',borderRadius:3},
+    {label:'Pole Positions',data:[13,13,10,8,1],backgroundColor:'#CC0000',borderRadius:3}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#888',font:{size:12}}}},
+    scales:{x:{ticks:{color:'#555'},grid:{color:'#111'}},y:{ticks:{color:'#555'},grid:{color:'#111'},min:0,max:15}}}
+});
+
+new Chart(document.getElementById('podChart'),{
+  type:'line',
+  data:{labels:seasons,datasets:[{label:'Podiums',data:[13,13,11,11,8],borderColor:'#FF6B00',backgroundColor:'rgba(255,107,0,0.07)',fill:true,tension:0.4,pointBackgroundColor:'#FF6B00',pointRadius:5}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#888',font:{size:12}}}},
+    scales:{x:{ticks:{color:'#555'},grid:{color:'#111'}},y:{ticks:{color:'#555'},grid:{color:'#111'},min:0,max:16}}}
+});
+</script>
+</body>
+</html>
